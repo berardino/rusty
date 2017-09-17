@@ -1,0 +1,11 @@
+[package]
+name = "rusty"
+version = "0.1.0"
+authors = ["Berardino la Torre <berardino.latorre@gmail.com>"]
+
+[dependencies]
+gl          = "0.6.3"
+glfw        = "0.17.0"
+
+
+
