@@ -9,19 +9,35 @@ use std::ptr;
 use std::mem;
 
 // Vertex data
-static VERTEX_DATA: [GLfloat; 6] = [0.0, 0.5, 0.5, -0.5, -0.5, -0.5];
+const VERTEX_DATA: [GLfloat; 15] = [
+    0.0, 0.5, 1.0, 0.0, 0.0,
+    0.5, -0.5, 0.0, 1.0, 0.0,
+    -0.5, -0.5, 0.0, 0.0, 1.0
+];
 
 // Shader sources
-static VS_SRC: &'static str = "#version 150\n\
-    in vec2 position;\n\
-    void main() {\n\
-       gl_Position = vec4(position, 0.0, 1.0);\n\
+const VS_SRC: &'static str = "
+    #version 150 core
+
+    in vec2 position;
+    in vec3 color;
+    out vec3 Color;
+
+    void main()
+    {
+        Color = color;
+        gl_Position = vec4(position, 0.0, 1.0);
     }";
 
-static FS_SRC: &'static str = "#version 150\n\
-    out vec4 out_color;\n\
-    void main() {\n\
-       out_color = vec4(1.0, 1.0, 1.0, 1.0);\n\
+const FS_SRC: &'static str = "
+    #version 150 core
+
+    in vec3 Color;
+    out vec4 out_color;
+
+    void main()
+    {
+        out_color = vec4(Color, 1.0);
     }";
 
 fn compile_shader(src: &str, ty: GLenum) -> GLuint {
@@ -88,8 +104,8 @@ fn link_program(vs: GLuint, fs: GLuint) -> GLuint {
 fn main() {
     let mut glfw = glfw::init(glfw::FAIL_ON_ERRORS).unwrap();
 
-    glfw.window_hint(WindowHint::ContextVersionMajor(3));
-    glfw.window_hint(WindowHint::ContextVersionMinor(2));
+    glfw.window_hint(WindowHint::ContextVersionMajor(4));
+    glfw.window_hint(WindowHint::ContextVersionMinor(0));
     glfw.window_hint(WindowHint::OpenGlForwardCompat(true));
     glfw.window_hint(WindowHint::OpenGlProfile(OpenGlProfileHint::Core));
 
@@ -130,8 +146,17 @@ fn main() {
                                 2,
                                 gl::FLOAT,
                                 gl::FALSE as GLboolean,
-                                0,
+                                5*mem::size_of::<GLfloat>() as i32,
                                 ptr::null());
+
+        let color_attr = gl::GetAttribLocation(program, CString::new("color").unwrap().as_ptr());
+        gl::EnableVertexAttribArray(color_attr as GLuint);
+        gl::VertexAttribPointer(color_attr as GLuint,
+                                3,
+                                gl::FLOAT,
+                                gl::FALSE as GLboolean,
+                                5*mem::size_of::<GLfloat>() as i32,
+                                ptr::null().offset(2*mem::size_of::<GLfloat>() as isize));
     }
 
     window.set_key_polling(true);
